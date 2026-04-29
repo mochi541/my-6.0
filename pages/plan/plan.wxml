@@ -1,0 +1,75 @@
+<view class="container">
+  <!-- 20-20-20 科普模块 -->
+  <view class="card rule-card">
+    <view class="card-title">20-20-20 护眼规则</view>
+    <view class="rule-row">
+      <view class="rule-item">
+        <view class="num">20</view>
+        <view class="text">每用眼20分钟</view>
+      </view>
+      <view class="rule-item">
+        <view class="num">20</view>
+        <view class="text">向20英尺（约6米）外眺望</view>
+      </view>
+      <view class="rule-item">
+        <view class="num">20</view>
+        <view class="text">保持眺望至少20秒</view>
+      </view>
+    </view>
+    <view class="tip">让眼睛睫状肌放松，预防近视加深</view>
+  </view>
+
+ <!-- 眼保健操音频播放器 -->
+<view class="card player-card">
+  <view class="card-title">眼保健操音频</view>
+  
+  <view class="audio-control">
+    <!-- 播放/暂停按钮 -->
+    <button class="play-btn" bind:tap="togglePlay">
+      {{isPlaying ? '❚❚ 暂停' : '▶ 播放'}}
+    </button>
+    
+<!-- 进度条容器 -->
+<view class="progress" bindtap="changeProgressByClick">
+  <!-- 已播放进度条 -->
+  <view class="progress-bar" style="width: {{progress}}%;"></view>
+  
+  <!-- 拖动滑块 -->
+  <view 
+    class="progress-dot"
+    style="left: {{progress}}%;"
+    catch:touchmove="dragProgress"
+  ></view>
+</view>
+    
+    <!-- 时间显示 -->
+    <view class="time">{{currentTime}} / {{duration}}</view>
+  </view>
+</view>
+
+  <!-- 用眼习惯建议 -->
+  <view class="card suggest-card">
+    <view class="card-title">科学用眼建议</view>
+
+    <view class="item">
+      <view class="item-title">学习场景</view>
+      <view class="item-desc">• 光线充足，距离书本33cm</view>
+      <view class="item-desc">• 每40分钟休息5~10分钟</view>
+      <view class="item-desc">• 坐姿端正，不躺卧看书</view>
+    </view>
+
+    <view class="item">
+      <view class="item-title">看手机场景</view>
+      <view class="item-desc">• 每天不超过1小时</view>
+      <view class="item-desc">• 夜间开启夜间模式/护眼模式</view>
+      <view class="item-desc">• 距离手机≥30cm，不侧躺刷手机</view>
+    </view>
+
+    <view class="item">
+      <view class="item-title">户外场景</view>
+      <view class="item-desc">• 每天户外≥2小时，有效预防近视</view>
+      <view class="item-desc">• 阳光下远眺，放松眼部肌肉</view>
+      <view class="item-desc">• 强光佩戴太阳镜，保护视网膜</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="card">
+    <text class="title">📖 青少年护眼助手 - 使用指南</text>
+    <view class="content">
+      <text class="item">1. 首页点击「开始学习」，启动计时与护眼提醒</text>
+      <text class="item">2. 每20分钟触发20-20-20护眼规则，远眺放松</text>
+      <text class="item">3. 姿势异常/距离过近时，自动震动+弹窗提醒</text>
+      <text class="item">4. 可在「我的」页面设置学习时长、提醒开关</text>
+      <text class="item">5. 开启青少年模式，单日学习时长限制2小时</text>
+      <text class="item">6. 家长可设置密码，查看孩子用眼数据统计</text>
+      <text class="item">7. 数据统计页面查看近7天/30天用眼记录</text>
+      <text class="item">8. 护眼计划页面学习护眼知识、播放眼保健操</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="title">⚠️ 核心护眼规则</text>
+    <view class="content">
+      <text class="item">• 20-20-20：每用眼20分钟，看20英尺外物体20秒</text>
+      <text class="item">• 学习时保持眼睛距离屏幕30cm以上</text>
+      <text class="item">• 连续学习45分钟，强制休息10分钟</text>
+      <text class="item">• 每天户外自然光活动≥2小时，预防近视</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <text class="title">🛠️ 常见问题</text>
+    <view class="content">
+      <text class="item">Q：提醒不生效？A：检查「我的」页面开关是否开启</text>
+      <text class="item">Q：姿势提醒不准确？A：保持手机摆放稳定，重新学习</text>
+      <text class="item">Q：如何关闭青少年模式？A：在「我的」页面直接关闭开关</text>
+    </view>
+  </view>
+</view>

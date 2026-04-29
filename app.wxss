@@ -1,0 +1,96 @@
+/* 全局基础：青少年护眼主题 */
+page {
+  background-color: #F5F7FA;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #303133;
+  box-sizing: border-box;
+  padding-bottom: 120rpx; /* 防止 tabBar 遮挡底部 */
+}
+
+/* 统一卡片 */
+.card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 30rpx;
+  margin: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 主按钮 */
+.btn {
+  border-radius: 10rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 32rpx;
+  margin: 20rpx;
+}
+.btn-primary {
+  background-color: #409EFF;
+  color: #fff;
+}
+.btn-success {
+  background-color: #67C23A;
+  color: #fff;
+}
+.btn-warn {
+  background-color: #F56C6C;
+  color: #fff;
+}
+
+/* 点击态（所有按钮统一） */
+.btn-hover {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+/* 文字规范 */
+.title {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 20rpx;
+}
+.desc {
+  font-size: 28rpx;
+  color: #303133;
+  line-height: 1.6;
+}
+.tip {
+  font-size: 24rpx;
+  color: #909399;
+}
+
+/* 设置行样式 */
+.set-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+}
+
+/* 弹窗遮罩 */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal {
+  width: 70%;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  text-align: center;
+}
+
+/* 加载动画 */
+.loading {
+  text-align: center;
+  padding: 40rpx;
+  color: #909399;
+}

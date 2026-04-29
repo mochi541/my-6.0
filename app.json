@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/plan/plan",
+    "pages/stats/stats",
+    "pages/my/my",
+    "pages/usage/usage"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#409EFF",
+    "navigationBarTitleText": "青少年近视防控助手",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F5F7FA"
+  },
+  "tabBar": {
+    "color": "#909399",
+    "selectedColor": "#409EFF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/plan/plan",
+        "text": "护眼计划"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "数据统计"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的"
+      }
+    ]
+  },
+  "permission": {
+    "scope.camera": {
+      "desc": "用于坐姿监测，需要调用摄像头检测头部姿态"
+    }
+  },
+  "setting": {
+    "faceCheck": true,
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true
+  },
+  "requiredBackgroundModes": ["camera"],
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

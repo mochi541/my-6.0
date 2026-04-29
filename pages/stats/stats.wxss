@@ -1,0 +1,114 @@
+.stats-container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 家长验证模块 */
+.parent-verify {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 40rpx;
+  background: #fff;
+  border-radius: 10rpx;
+  margin-top: 100rpx;
+}
+.parent-verify input {
+  height: 80rpx;
+  border: 1px solid #eee;
+  border-radius: 5rpx;
+  padding: 0 20rpx;
+}
+.verify-btn {
+  background-color: #07c160;
+  color: #fff;
+  border-radius: 5rpx;
+}
+
+/* 数据统计内容 */
+.stats-content {
+  margin-top: 20rpx;
+}
+
+/* 时间筛选器 */
+.time-filter {
+  display: flex;
+  gap: 20rpx;
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+}
+.time-filter button {
+  flex: 1;
+  height: 70rpx;
+  border-radius: 5rpx;
+}
+.time-filter button.active {
+  background-color: #07c160;
+  color: #fff;
+}
+
+/* 数据卡片 */
+.stats-cards {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+.card {
+  flex: 1;
+  background: #fff;
+  padding: 30rpx;
+  border-radius: 10rpx;
+  text-align: center;
+}
+.card-title {
+  font-size: 28rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 10rpx;
+}
+.card-value {
+  font-size: 36rpx;
+  color: #07c160;
+  font-weight: bold;
+}
+
+/* 图表容器 */
+.chart-box {
+  background: #fff;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+}
+.chart-title {
+  font-size: 32rpx;
+  margin-bottom: 20rpx;
+  display: block;
+  color: #333;
+}
+ec-canvas {
+  width: 100%;
+  height: 400rpx;
+}
+
+/* 操作按钮 */
+.operate-btn {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+.operate-btn button {
+  flex: 1;
+  height: 70rpx;
+  border-radius: 5rpx;
+}
+
+/* 退出按钮 */
+.exit-btn {
+  background-color: #ff4757;
+  color: #fff;
+  height: 70rpx;
+  border-radius: 5rpx;
+}

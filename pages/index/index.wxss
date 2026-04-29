@@ -1,0 +1,70 @@
+.container {
+  padding: 20rpx;
+}
+.camera {
+  position: fixed;
+  top: 20rpx;
+  right: 20rpx;
+  width: 180rpx;
+  height: 240rpx;
+  border-radius: 12rpx;
+  opacity: 0.8;
+  z-index: 10;
+}
+.pose-tip {
+  position: fixed;
+  top: 270rpx;
+  right: 20rpx;
+  width: 180rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: red;
+  z-index: 11;
+  background: rgba(255,255,255,0.8);
+  border-radius: 8rpx;
+  padding: 4rpx 0;
+}
+.time-box {
+  text-align: center;
+  margin-top: 60rpx;
+}
+.time-text {
+  font-size: 72rpx;
+  font-weight: bold;
+  color: #409EFF;
+  margin-bottom: 20rpx;
+}
+.btn-group {
+  margin: 40rpx 0;
+}
+.btn {
+  border-radius: 50rpx;
+  padding: 20rpx 0;
+  font-size: 32rpx;
+}
+.btn-primary {
+  background: #409EFF;
+  color: white;
+}
+.btn-warn {
+  background: #F56C6C;
+  color: white;
+}
+.btn-disabled {
+  background: #909399;
+  color: white;
+}
+.btn-hover {
+  opacity: 0.8;
+}
+.card {
+  background: #f5f5f5;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin: 20rpx 0;
+  text-align: center;
+}
+.desc {
+  font-size: 28rpx;
+  color: #666;
+}

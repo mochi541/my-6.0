@@ -1,0 +1,39 @@
+<view class="container">
+  <camera 
+    wx:if="{{cameraAuth}}" 
+    class="camera"
+    device-position="front" 
+    flash="off"
+  />
+
+  <view class="pose-tip {{warning ? 'warning' : ''}}">{{poseTip}}</view>
+
+  <view class="card time-box">
+    <text class="time-text">{{time}}</text>
+    <text class="tip">当前学习时长</text>
+  </view>
+
+  <view class="btn-group">
+    <button wx:if="{{!isStudying && !lockStudy}}"
+      class="btn btn-primary"
+      hover-class="btn-hover"
+      bindtap="startStudy">
+      开始学习
+    </button>
+
+    <button wx:elif="{{isStudying}}"
+      class="btn btn-warn"
+      hover-class="btn-hover"
+      bindtap="stopStudy">
+      停止学习
+    </button>
+
+    <button wx:else disabled class="btn btn-disabled">
+      {{lockText}}
+    </button>
+  </view>
+
+  <view class="card">
+    <text class="desc">今日护眼提醒：{{remindCount}} 次</text>
+  </view>
+</view>

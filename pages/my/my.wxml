@@ -1,0 +1,85 @@
+<!-- pages/my/my.wxml -->
+<view class="page-container">
+  <!-- 1. 用户信息卡片 -->
+  <view class="card user-card">
+    <view class="user-info" bindtap="getUserProfile">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/image/damie.png'}}" mode="aspectFill"></image>
+      <view class="user-text">
+        <text class="nickname">{{userInfo.nickName || '点击登录/授权'}}</text>
+        <text class="tip">青少年近视防控助手</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2. 核心设置模块 -->
+  <view class="card setting-card">
+    <text class="title">系统设置</text>
+    
+    <!-- 2.1 提醒开关 -->
+    <view class="set-row">
+      <text>姿势提醒</text>
+      <switch checked="{{postureRemind}}" bindchange="switchPostureRemind"></switch>
+    </view>
+    <view class="set-row">
+      <text>护眼提醒</text>
+      <switch checked="{{eyeRemind}}" bindchange="switchEyeRemind"></switch>
+    </view>
+    <view class="set-row">
+      <text>震动提醒</text>
+      <switch checked="{{vibrate}}" bindchange="switchVibrate"></switch>
+    </view>
+
+    <!-- 2.2 字体大小调节 -->
+    <view class="set-row">
+      <text>字体大小</text>
+      <slider value="{{fontSize}}" min="0.8" max="1.2" step="0.1" bindchange="changeFontSize" show-value></slider>
+    </view>
+
+    <!-- 2.3 最长学习时长限制 -->
+    <view class="set-row">
+      <text>单次最长学习时长(分钟)</text>
+      <picker mode="selector" range="{{durationOptions}}" range-key="name" value="{{durationIndex}}" bindchange="changeMaxDuration">
+        <view class="picker-text">{{durationOptions[durationIndex].name}}</view>
+      </picker>
+    </view>
+
+    <!-- 2.4 青少年模式 -->
+    <view class="set-row">
+      <text>青少年模式</text>
+      <switch checked="{{teenMode}}" bindchange="switchTeenMode"></switch>
+    </view>
+  </view>
+
+  <!-- 3. 家长监督模块 -->
+  <view class="card">
+    <text class="title">家长监督</text>
+    <view class="set-row" bindtap="setParentPwd">
+      <text>设置查看密码</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+    <view class="set-row" bindtap="bindParentWechat">
+      <text>绑定家长微信</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+    <view class="set-row" bindtap="parentViewStats">
+      <text>家长查看数据</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+  </view>
+
+  <!-- 4. 辅助功能模块 -->
+  <view class="card">
+    <view class="set-row" bindtap="showAbout">
+      <text>关于我们</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+    <view class="set-row" bindtap="showUsage">
+      <text>使用说明</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+    <view class="set-row" bindtap="feedback">
+      <text>意见反馈</text>
+      <icon type="arrowright" color="#909399"></icon>
+    </view>
+  </view>
+</view>
