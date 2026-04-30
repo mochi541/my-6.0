@@ -102,11 +102,25 @@ Page({
     const sec = this.data.seconds
     if (sec < 60) return
 
+    // 获取openid
+    const openid = app.globalData.openid || wx.getStorageSync('openid')
+    
+    // 保存到云数据库
     db.collection('study_records').add({
       data: {
-        duration: Math.floor(sec / 60),
-        remindCount: this.data.remindCount,
-        createTime: new Date()
+        openid: openid,
+        duration: Math.floor(sec / 60), // 学习时长（分钟）
+        remindCount: this.data.remindCount, // 提醒次数
+        date: this.getTodayDate(), // 日期字符串，方便查询
+        createTime: new Date(),
+        userInfo: app.globalData.user_info || {}
+      },
+      success: (res) => {
+        console.log('学习记录保存成功', res)
+      },
+      fail: (err) => {
+        console.error('学习记录保存失败', err)
+        wx.showToast({ title: '记录保存失败', icon: 'none' })
       }
     })
   },
@@ -132,5 +146,14 @@ Page({
     this.setData({
       time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
     })
+  },
+
+  // 获取今天日期字符串 YYYY-MM-DD
+  getTodayDate() {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 })

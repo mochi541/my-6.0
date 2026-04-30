@@ -82,4 +82,47 @@
       <icon type="arrowright" color="#909399"></icon>
     </view>
   </view>
+
+  <!-- 自定义密码设置弹窗 -->
+  <view class="modal-mask" wx:if="{{showPwdModal}}" bindtap="closePwdModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">{{pwdModalTitle}}</view>
+      <view class="modal-desc">请输入4位数字密码（仅家长查看数据使用）</view>
+      <input 
+        class="pwd-input" 
+        type="number" 
+        maxlength="4" 
+        placeholder="请输入4位数字" 
+        value="{{newPwd}}"
+        bindinput="onPwdInput"
+        focus="{{showPwdModal}}"
+      />
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closePwdModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmSetPwd">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自定义密码验证弹窗 -->
+  <view class="modal-mask" wx:if="{{showVerifyModal}}" bindtap="closeVerifyModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">家长验证</view>
+      <view class="modal-desc">请输入4位查看密码</view>
+      <input 
+        class="pwd-input" 
+        type="number" 
+        password="{{true}}"
+        maxlength="4" 
+        placeholder="请输入密码" 
+        value="{{verifyPwd}}"
+        bindinput="onVerifyPwdInput"
+        focus="{{showVerifyModal}}"
+      />
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeVerifyModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmVerifyPwd">确定</button>
+      </view>
+    </view>
+  </view>
 </view>

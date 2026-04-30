@@ -16,7 +16,14 @@ Page({
     ],
     durationIndex: 1,
     teenMode: false,
-    parentPwd: wx.getStorageSync('parentPwd') || ''
+    parentPwd: wx.getStorageSync('parentPwd') || '',
+    // 新增：密码输入弹窗相关
+    showPwdModal: false,
+    newPwd: '',
+    pwdModalTitle: '设置家长密码',
+    // 新增：验证密码弹窗相关
+    showVerifyModal: false,
+    verifyPwd: ''
   },
 
   onLoad(options) {
@@ -116,26 +123,43 @@ Page({
   // ====================== 核心修复：真实可用的家长密码设置 ======================
   setParentPwd() {
     const hasPwd = this.data.parentPwd;
-    wx.showModal({
-      title: hasPwd ? '修改家长密码' : '设置家长密码',
-      content: '请输入4位数字密码（仅家长查看数据使用）',
-      editable: true,
-      placeholderText: '请输入4位数字密码',
-      success: (res) => {
-        if (!res.confirm || !res.content) return;
-        
-        const pwd = res.content.trim();
-        // 验证4位数字
-        if (!/^\d{4}$/.test(pwd)) {
-          wx.showToast({ title: '必须是4位数字', icon: 'none' });
-          return;
-        }
-
-        wx.setStorageSync('parentPwd', pwd);
-        this.setData({ parentPwd: pwd });
-        wx.showToast({ title: '密码设置成功', icon: 'success' });
-      }
+    this.setData({
+      showPwdModal: true,
+      newPwd: '',
+      pwdModalTitle: hasPwd ? '修改家长密码' : '设置家长密码'
     });
+  },
+
+  // 关闭密码弹窗
+  closePwdModal() {
+    this.setData({
+      showPwdModal: false,
+      newPwd: ''
+    });
+  },
+
+  // 密码输入（设置密码）
+  onPwdInput(e) {
+    this.setData({ newPwd: e.detail.value });
+  },
+
+  // 确认设置密码
+  confirmSetPwd() {
+    const pwd = this.data.newPwd.trim();
+    
+    // 验证4位数字
+    if (!/^\d{4}$/.test(pwd)) {
+      wx.showToast({ title: '必须是4位数字', icon: 'none' });
+      return;
+    }
+
+    wx.setStorageSync('parentPwd', pwd);
+    this.setData({ 
+      parentPwd: pwd,
+      showPwdModal: false,
+      newPwd: ''
+    });
+    wx.showToast({ title: '密码设置成功', icon: 'success' });
   },
 
   // 绑定家长微信
@@ -147,27 +171,52 @@ Page({
     });
   },
 
-  // 家长验证查看数据（真实可用）
+  // 家长验证查看数据（使用自定义弹窗）
   parentViewStats() {
     if (!this.data.parentPwd) {
       wx.showToast({ title: '请先设置密码', icon: 'none' });
       return;
     }
 
-    wx.showModal({
-      title: '家长验证',
-      content: '请输入4位查看密码',
-      editable: true,
-      placeholderText: '输入密码',
-      success: (res) => {
-        if (res.content === this.data.parentPwd) {
-          wx.showToast({ title: '验证成功', icon: 'success' });
-          wx.navigateTo({ url: '/pages/stats/stats?parent=1' });
-        } else {
-          wx.showToast({ title: '密码错误', icon: 'error' });
-        }
-      }
+    this.setData({
+      showVerifyModal: true,
+      verifyPwd: ''
     });
+  },
+
+  // 关闭验证弹窗
+  closeVerifyModal() {
+    this.setData({
+      showVerifyModal: false,
+      verifyPwd: ''
+    });
+  },
+
+  // 验证密码输入
+  onVerifyPwdInput(e) {
+    this.setData({ verifyPwd: e.detail.value });
+  },
+
+  // 确认验证密码
+  confirmVerifyPwd() {
+    const inputPwd = this.data.verifyPwd.trim();
+    
+    if (!inputPwd) {
+      wx.showToast({ title: '请输入密码', icon: 'none' });
+      return;
+    }
+
+    if (inputPwd === this.data.parentPwd) {
+      wx.showToast({ title: '验证成功', icon: 'success' });
+      this.setData({
+        showVerifyModal: false,
+        verifyPwd: ''
+      });
+      wx.navigateTo({ url: '/pages/stats/stats?parent=1' });
+    } else {
+      wx.showToast({ title: '密码错误', icon: 'none' });
+      this.setData({ verifyPwd: '' });
+    }
   },
 
   // ====================== 核心修复：真实可用的意见反馈 ======================

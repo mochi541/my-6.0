@@ -1,5 +1,6 @@
 // my/pages/stats/stats.js
 const app = getApp();
+const db = wx.cloud.database();
 // 关键：直接引用 wxcharts-min.js（无需重命名）
 const wxCharts = require('../../utils/wxcharts-min.js');
 
@@ -7,7 +8,7 @@ Page({
   data: {
     inputPwd: "",
     isParentVerified: false,
-    parentPwd: "123456",
+    parentPwd: '', // 初始为空，在onShow中读取
     timeRange: 7,
     avgDuration: 0, 
     restCompletionRate: 0,
@@ -15,7 +16,9 @@ Page({
     showAuthBtn: false,
     // 缓存图表实例（原生wx-charts，无循环引用）
     lineChartInstance: null,
-    barChartInstance: null
+    barChartInstance: null,
+    // 真实数据存储
+    studyDataList: []
   },
 
   onLoad(options) {
@@ -43,6 +46,12 @@ Page({
     });
   },
 
+  onShow() {
+    // 每次显示页面时重新读取最新密码
+    const latestPwd = wx.getStorageSync('parentPwd') || '';
+    this.setData({ parentPwd: latestPwd });
+  },
+
   // 密码输入
   onPwdInput(e) {
     this.setData({ inputPwd: e.detail.value });
@@ -50,14 +59,39 @@ Page({
 
   // 家长验证（核心：验证后直接渲染图表）
   verifyParentPwd() {
-    if (this.data.inputPwd !== this.data.parentPwd) {
+    // 检查是否已设置家长密码
+    if (!this.data.parentPwd) {
+      wx.showModal({
+        title: '提示',
+        content: '请先在"我的"页面设置家长密码',
+        showCancel: false,
+        confirmText: '去设置',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateBack(); // 返回上一页
+          }
+        }
+      });
+      return;
+    }
+
+    if (!this.data.inputPwd) {
+      wx.showToast({ title: '请输入密码', icon: 'none' });
+      return;
+    }
+
+    // 去除空格后对比
+    const inputPwd = this.data.inputPwd.trim();
+    const savedPwd = this.data.parentPwd.trim();
+
+    if (inputPwd !== savedPwd) {
       wx.showToast({ title: '密码错误', icon: 'none' });
       return;
     }
 
     this.setData({ isParentVerified: true }, () => {
-      // 加载数据并渲染图表
-      this.loadMockData();
+      // 加载真实数据并渲染图表
+      this.loadRealData();
     });
   },
 
@@ -74,54 +108,147 @@ Page({
   changeTimeRange(e) {
     const range = e.currentTarget.dataset.range;
     this.setData({ timeRange: range }, () => {
-      this.loadMockData();
+      this.loadRealData();
     });
   },
 
-  // 加载模拟数据+渲染图表（核心：原生wx-charts，无超时）
-  loadMockData() {
-    const range = this.data.timeRange;
-    const dates = [];
-    const durations = [];
-    const completionRates = [];
+  // 加载真实数据+渲染图表
+  async loadRealData() {
+    wx.showLoading({ title: '加载中...' });
+    
+    try {
+      // 获取openid
+      const openid = app.globalData.openid || wx.getStorageSync('openid');
+      
+      if (!openid) {
+        wx.hideLoading();
+        wx.showToast({ title: '未获取到用户信息', icon: 'none' });
+        return;
+      }
 
-    // 生成模拟数据
-    for (let i = range - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-      const studyDuration = Math.floor(Math.random() * 120) + 30;
-      const restTimes = Math.floor(Math.random() * 10);
-      const requiredRestTimes = 10;
-      const completionRate = Math.round((restTimes / requiredRestTimes) * 100);
+      // 计算起始日期
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - this.data.timeRange + 1);
+      
+      const startDateStr = this.formatDate(startDate);
+      const endDateStr = this.formatDate(endDate);
 
-      dates.push(dateStr);
-      durations.push(studyDuration);
-      completionRates.push(completionRate);
-    }
+      // 从云数据库查询学习记录
+      const res = await db.collection('study_records')
+        .where({
+          openid: openid,
+          date: db.command.gte(startDateStr).and(db.command.lte(endDateStr))
+        })
+        .orderBy('createTime', 'asc')
+        .get();
 
-    // 计算平均值
-    const avgDuration = Math.round(durations.reduce((a, b) => a + b, 0) / range);
-    const restCompletionRate = Math.round(completionRates.reduce((a, b) => a + b, 0) / range);
+      const records = res.data || [];
+      
+      if (records.length === 0) {
+        wx.hideLoading();
+        wx.showToast({ title: '暂无学习数据', icon: 'none' });
+        // 显示空状态图表
+        this.renderEmptyCharts();
+        return;
+      }
 
-    this.setData({
-      avgDuration,
-      restCompletionRate
-    }, () => {
-      // 关键：增加500ms延迟，避开模拟器超时检测
+      // 按日期分组统计
+      const dateMap = {};
+      records.forEach(record => {
+        const date = record.date;
+        if (!dateMap[date]) {
+          dateMap[date] = {
+            totalDuration: 0,
+            remindCount: 0,
+            count: 0
+          };
+        }
+        dateMap[date].totalDuration += record.duration || 0;
+        dateMap[date].remindCount += record.remindCount || 0;
+        dateMap[date].count += 1;
+      });
+
+      // 生成完整的日期序列（包括没有学习的日期）
+      const dates = [];
+      const durations = [];
+      const completionRates = [];
+      
+      for (let i = 0; i < this.data.timeRange; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (this.data.timeRange - 1 - i));
+        const dateStr = this.formatDate(date);
+        const displayDate = `${date.getMonth() + 1}/${date.getDate()}`;
+        
+        dates.push(displayDate);
+        
+        if (dateMap[dateStr]) {
+          durations.push(dateMap[dateStr].totalDuration);
+          // 计算完成率：假设每天应该休息次数 = 学习时长/20分钟
+          const expectedRest = Math.max(1, Math.floor(dateMap[dateStr].totalDuration / 20));
+          const actualRest = dateMap[dateStr].remindCount;
+          const rate = Math.min(100, Math.round((actualRest / expectedRest) * 100));
+          completionRates.push(rate);
+        } else {
+          durations.push(0);
+          completionRates.push(0);
+        }
+      }
+
+      // 计算平均值
+      const avgDuration = Math.round(durations.reduce((a, b) => a + b, 0) / this.data.timeRange);
+      const restCompletionRate = Math.round(completionRates.reduce((a, b) => a + b, 0) / this.data.timeRange);
+
+      this.setData({
+        avgDuration,
+        restCompletionRate,
+        studyDataList: records
+      });
+
+      wx.hideLoading();
+
+      // 渲染图表
       setTimeout(() => {
         wx.getSystemInfo({
           success: (res) => {
-            const chartWidth = res.windowWidth * 0.9; // 图表宽度=屏幕宽度*90%
-            this.renderLineChart(chartWidth, dates, durations); // 折线图
-            this.renderBarChart(chartWidth, dates, completionRates); // 柱状图
+            const chartWidth = res.windowWidth * 0.9;
+            this.renderLineChart(chartWidth, dates, durations);
+            this.renderBarChart(chartWidth, dates, completionRates);
           }
         });
-      }, 500);
+      }, 300);
+
+    } catch (err) {
+      wx.hideLoading();
+      console.error('加载数据失败', err);
+      wx.showToast({ title: '加载数据失败', icon: 'none' });
+    }
+  },
+
+  // 渲染空状态图表
+  renderEmptyCharts() {
+    wx.getSystemInfo({
+      success: (res) => {
+        const chartWidth = res.windowWidth * 0.9;
+        const dates = [];
+        const durations = [];
+        const completionRates = [];
+        
+        for (let i = 0; i < this.data.timeRange; i++) {
+          const date = new Date();
+          date.setDate(date.getDate() - (this.data.timeRange - 1 - i));
+          dates.push(`${date.getMonth() + 1}/${date.getDate()}`);
+          durations.push(0);
+          completionRates.push(0);
+        }
+        
+        this.renderLineChart(chartWidth, dates, durations);
+        this.renderBarChart(chartWidth, dates, completionRates);
+      }
     });
   },
 
-  // 渲染折线图（修复宽高比例+X轴显示）
+  // 渲染折线图
   renderLineChart(width, categories, data) {
     const systemInfo = wx.getSystemInfoSync();
     const chartHeight = systemInfo.windowWidth / 750 * 400;
@@ -171,7 +298,7 @@ Page({
     }
   },
 
-  // 渲染柱状图（修复宽高比例+X轴显示）
+  // 渲染柱状图
   renderBarChart(width, categories, data) {
     const systemInfo = wx.getSystemInfoSync();
     const chartHeight = systemInfo.windowWidth / 750 * 400;
@@ -227,12 +354,17 @@ Page({
 
   // 导出数据
   exportData() {
-    const { avgDuration, restCompletionRate, timeRange, userName } = this.data;
+    const { avgDuration, restCompletionRate, timeRange, userName, studyDataList } = this.data;
     const exportData = {
       用户名: userName,
       统计时间范围: `${timeRange}天`,
       日均用眼时长: `${avgDuration}分钟`,
-      平均休息完成率: `${restCompletionRate}%`
+      平均休息完成率: `${restCompletionRate}%`,
+      详细记录: studyDataList.map(item => ({
+        日期: item.date,
+        学习时长: item.duration + '分钟',
+        提醒次数: item.remindCount
+      }))
     };
 
     const dataStr = JSON.stringify(exportData, null, 2);
@@ -252,12 +384,10 @@ Page({
   shareData() {
     wx.showModal({
       title: '分享提示',
-      content: '请点击小程序右上角「···」按钮，选择“转发给朋友”或“分享到朋友圈”',
+      content: '请点击小程序右上角「···」按钮，选择"转发给朋友"或"分享到朋友圈"',
       showCancel: false,
       confirmText: '知道了',
-      // 真机下可引导用户触发原生分享
       success: () => {
-        // 真机中主动唤起分享面板（仅支持基础库2.18.1+）
         if (wx.canIUse('shareAppMessage')) {
           wx.showToast({ title: '请在右上角完成分享', icon: 'none' });
         }
@@ -284,7 +414,15 @@ Page({
     });
   },
 
-  // 页面生命周期：分享给好友（小程序原生，必须保留）
+  // 格式化日期为 YYYY-MM-DD
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+
+  // 页面生命周期：分享给好友
   onShareAppMessage() {
     const { avgDuration, restCompletionRate, timeRange, userName } = this.data;
     return {
@@ -293,7 +431,7 @@ Page({
     };
   },
 
-  // 页面生命周期：分享到朋友圈（小程序原生）
+  // 页面生命周期：分享到朋友圈
   onShareTimeline() {
     const { avgDuration, restCompletionRate, timeRange, userName } = this.data;
     return {

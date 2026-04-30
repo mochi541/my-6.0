@@ -58,7 +58,7 @@
 <!-- 家长验证区域 -->
 <view wx:else style="padding: 50rpx 20rpx;">
   <text style="font-size: 36rpx; color: #333; display: block; text-align: center; margin-bottom: 50rpx;">请输入家长密码查看数据</text>
-  <input type="password" placeholder="家长密码（默认123456）" bindinput="onPwdInput" value="{{inputPwd}}" 
+  <input type="password" placeholder="请输入家长密码" bindinput="onPwdInput" value="{{inputPwd}}" 
     style="width: 90%; margin: 0 auto; display: block; padding: 20rpx; border: 1px solid #eee; border-radius: 8rpx; font-size: 32rpx;" />
   <button bindtap="verifyParentPwd"
     style="width: 90%; margin: 30rpx auto; display: block; padding: 20rpx; background: #07c160; color: #fff; border: none; border-radius: 8rpx; font-size: 32rpx;">
