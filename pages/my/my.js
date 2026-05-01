@@ -8,6 +8,7 @@ Page({
     eyeRemind: true,
     vibrate: true,
     fontSize: 1,
+    fontSizeStyle: '', // 新增：存储字体样式
     durationOptions: [
       { name: '30分钟', value: 30 },
       { name: '45分钟', value: 45 },
@@ -17,25 +18,22 @@ Page({
     durationIndex: 1,
     teenMode: false,
     parentPwd: wx.getStorageSync('parentPwd') || '',
-    // 新增：密码输入弹窗相关
     showPwdModal: false,
     newPwd: '',
     pwdModalTitle: '设置家长密码',
-    // 新增：验证密码弹窗相关
     showVerifyModal: false,
     verifyPwd: ''
   },
 
   onLoad(options) {
-    // 同步全局设置
+    const fontSize = wx.getStorageSync('fontSize') || 1;
     this.setData({
       postureRemind: app.globalData.postureRemind,
       eyeRemind: app.globalData.eyeRemind,
       vibrate: app.globalData.vibrate,
-      fontSize: app.globalData.fontSize
+      fontSize: fontSize
     });
 
-    // 读取缓存配置
     const maxDuration = wx.getStorageSync('maxDuration') || 45;
     const durationIndex = this.data.durationOptions.findIndex(item => item.value === maxDuration);
     if (durationIndex !== -1) this.setData({ durationIndex });
@@ -44,9 +42,17 @@ Page({
       teenMode: wx.getStorageSync('teenMode') || false,
       userInfo: wx.getStorageSync('userInfo') || {}
     });
+
+    this.applyFontSize();
   },
 
-  // 1. 微信授权登录
+  onShow() {
+    const fontSize = wx.getStorageSync('fontSize') || 1;
+    this.setData({ fontSize });
+    app.globalData.fontSize = fontSize;
+    this.applyFontSize();
+  },
+
   getUserProfile() {
     wx.getUserProfile({
       desc: '展示用户信息',
@@ -59,7 +65,6 @@ Page({
     });
   },
 
-  // 2. 姿势提醒开关
   switchPostureRemind(e) {
     const status = e.detail.value;
     this.setData({ postureRemind: status });
@@ -67,7 +72,6 @@ Page({
     wx.setStorageSync('postureRemind', status);
   },
 
-  // 3. 护眼提醒开关
   switchEyeRemind(e) {
     const status = e.detail.value;
     this.setData({ eyeRemind: status });
@@ -75,7 +79,6 @@ Page({
     wx.setStorageSync('eyeRemind', status);
   },
 
-  // 4. 震动开关
   switchVibrate(e) {
     const status = e.detail.value;
     this.setData({ vibrate: status });
@@ -83,15 +86,26 @@ Page({
     wx.setStorageSync('vibrate', status);
   },
 
-  // 5. 字体大小
   changeFontSize(e) {
     const fontSize = e.detail.value;
     this.setData({ fontSize });
     app.globalData.fontSize = fontSize;
     wx.setStorageSync('fontSize', fontSize);
+    
+    this.applyFontSize();
+    
+    wx.showToast({ title: '字体大小已调整', icon: 'success', duration: 1000 });
   },
 
-  // 6. 学习时长设置
+  applyFontSize() {
+    const fontSize = this.data.fontSize;
+    const baseFontSize = Math.round(28 * fontSize);
+    const fontSizeStyle = `font-size: ${baseFontSize}rpx;`;
+    
+    this.setData({ fontSizeStyle });
+    app.globalData.fontSizeStyle = fontSizeStyle;
+  },
+
   changeMaxDuration(e) {
     const index = e.detail.value;
     const maxDuration = this.data.durationOptions[index].value;
@@ -100,7 +114,6 @@ Page({
     wx.showToast({ title: `已设为${maxDuration}分钟`, icon: 'none' });
   },
 
-  // 7. 青少年模式
   switchTeenMode(e) {
     const status = e.detail.value;
     if (status) {
@@ -120,7 +133,6 @@ Page({
     }
   },
 
-  // ====================== 核心修复：真实可用的家长密码设置 ======================
   setParentPwd() {
     const hasPwd = this.data.parentPwd;
     this.setData({
@@ -130,7 +142,6 @@ Page({
     });
   },
 
-  // 关闭密码弹窗
   closePwdModal() {
     this.setData({
       showPwdModal: false,
@@ -138,16 +149,13 @@ Page({
     });
   },
 
-  // 密码输入（设置密码）
   onPwdInput(e) {
     this.setData({ newPwd: e.detail.value });
   },
 
-  // 确认设置密码
   confirmSetPwd() {
     const pwd = this.data.newPwd.trim();
     
-    // 验证4位数字
     if (!/^\d{4}$/.test(pwd)) {
       wx.showToast({ title: '必须是4位数字', icon: 'none' });
       return;
@@ -162,7 +170,6 @@ Page({
     wx.showToast({ title: '密码设置成功', icon: 'success' });
   },
 
-  // 绑定家长微信
   bindParentWechat() {
     wx.showModal({
       title: '绑定家长微信',
@@ -171,7 +178,6 @@ Page({
     });
   },
 
-  // 家长验证查看数据（使用自定义弹窗）
   parentViewStats() {
     if (!this.data.parentPwd) {
       wx.showToast({ title: '请先设置密码', icon: 'none' });
@@ -184,7 +190,6 @@ Page({
     });
   },
 
-  // 关闭验证弹窗
   closeVerifyModal() {
     this.setData({
       showVerifyModal: false,
@@ -192,12 +197,10 @@ Page({
     });
   },
 
-  // 验证密码输入
   onVerifyPwdInput(e) {
     this.setData({ verifyPwd: e.detail.value });
   },
 
-  // 确认验证密码
   confirmVerifyPwd() {
     const inputPwd = this.data.verifyPwd.trim();
     
@@ -219,7 +222,6 @@ Page({
     }
   },
 
-  // ====================== 核心修复：真实可用的意见反馈 ======================
   feedback() {
     wx.showModal({
       title: '意见反馈',
@@ -231,7 +233,6 @@ Page({
         
         const content = res.content.trim();
         try {
-          // 提交到云数据库（真实存储）
           await wx.cloud.database().collection('feedback').add({
             data: {
               openid: app.globalData.openid || '未获取',
@@ -242,7 +243,6 @@ Page({
           });
           wx.showToast({ title: '反馈提交成功', icon: 'success' });
         } catch (err) {
-          // 云开发未开通时，本地提示成功
           wx.showToast({ title: '反馈已收到', icon: 'success' });
           console.log('反馈内容：', content);
         }
@@ -250,7 +250,6 @@ Page({
     });
   },
 
-  // 关于我们
   showAbout() {
     wx.showModal({
       title: '关于我们',
@@ -259,7 +258,6 @@ Page({
     });
   },
 
-  // 使用说明（跳转到我们新建的页面）
   showUsage() {
     wx.navigateTo({ url: '/pages/usage/usage' });
   }

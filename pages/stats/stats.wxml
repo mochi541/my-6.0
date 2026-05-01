@@ -1,19 +1,22 @@
+<!-- 背景图片 -->
+<image class="bg-image" src="/image/beijin.png" mode="aspectFill"></image>
+
 <!-- 数据统计主区域 -->
 <view class="stats-container" wx:if="{{isParentVerified}}">
   <!-- 时间范围切换 -->
   <view style="display: flex; margin: 20rpx; gap: 20rpx;">
     <button bindtap="changeTimeRange" data-range="7" 
-      style="flex: 1; padding: 15rpx; background: {{timeRange ==7 ? '#07c160' : '#fff'}}; color: {{timeRange ==7 ? '#fff' : '#333'}}; border: 1px solid #eee; border-radius: 8rpx;">
+      style="flex: 1; padding: 15rpx; background: {{timeRange == 7 ? 'rgba(7, 193, 96, 0.9)' : 'rgba(255, 255, 255, 0.9)'}}; color: {{timeRange == 7 ? '#fff' : '#333'}}; border: 1px solid #eee; border-radius: 8rpx;">
       近7天
     </button>
     <button bindtap="changeTimeRange" data-range="30"
-      style="flex: 1; padding: 15rpx; background: {{timeRange ==30 ? '#07c160' : '#fff'}}; color: {{timeRange ==30 ? '#fff' : '#333'}}; border: 1px solid #eee; border-radius: 8rpx;">
+      style="flex: 1; padding: 15rpx; background: {{timeRange ==30 ? 'rgba(7, 193, 96, 0.9)' : 'rgba(255, 255, 255, 0.9)'}}; color: {{timeRange ==30 ? '#fff' : '#333'}}; border: 1px solid #eee; border-radius: 8rpx;">
       近30天
     </button>
   </view>
 
   <!-- 核心数据展示 -->
-  <view style="display: flex; justify-content: space-around; margin: 30rpx 20rpx; padding: 20rpx; background: #f5f5f5; border-radius: 8rpx;">
+  <view style="display: flex; justify-content: space-around; margin: 30rpx 20rpx; padding: 20rpx; background: rgba(245, 245, 245, 0.9); border-radius: 8rpx;">
     <view>
       <text style="font-size: 28rpx; color: #666; display: block; text-align: center;">日均用眼时长</text>
       <text style="font-size: 40rpx; color: #07c160; display: block; text-align: center; margin-top: 10rpx;">{{avgDuration}} 分钟</text>
@@ -27,48 +30,50 @@
   <!-- 折线图（原生canvas） -->
   <view style="margin: 20rpx 0;">
     <text style="font-size: 32rpx; margin: 10rpx 20rpx; display: block; color: #333;">{{userName}} 每日学习时长趋势</text>
-    <canvas canvas-id="lineChart" style="width: 90%; height: 400rpx; margin: 0 auto;"></canvas>
+    <canvas canvas-id="lineChart" style="width: 90%; height: 400rpx; margin: 0 auto; background: rgba(255, 255, 255, 0.9); border-radius: 8rpx;"></canvas>
   </view>
 
   <!-- 柱状图（原生canvas） -->
   <view style="margin: 20rpx 0;">
     <text style="font-size: 32rpx; margin: 10rpx 20rpx; display: block; color: #333;">{{userName}} 每日休息完成率</text>
-    <canvas canvas-id="barChart" style="width: 90%; height: 400rpx; margin: 0 auto;"></canvas>
+    <canvas canvas-id="barChart" style="width: 90%; height: 400rpx; margin: 0 auto; background: rgba(255, 255, 255, 0.9); border-radius: 8rpx;"></canvas>
   </view>
 
   <!-- 功能按钮 -->
   <view style="display: flex; margin: 30rpx 20rpx; gap: 20rpx;">
     <button bindtap="exportData" 
-      style="flex: 1; padding: 20rpx; background: #fff; color: #07c160; border: 1px solid #07c160; border-radius: 8rpx;">
+      style="flex: 1; padding: 20rpx; background: rgba(255, 255, 255, 0.9); color: #07c160; border: 1px solid #07c160; border-radius: 8rpx;">
       导出数据
     </button>
     <button bindtap="shareData"
-      style="flex: 1; padding: 20rpx; background: #1989fa; color: #fff; border: none; border-radius: 8rpx;">
+      style="flex: 1; padding: 20rpx; background: rgba(25, 137, 250, 0.9); color: #fff; border: none; border-radius: 8rpx;">
       分享数据
     </button>
   </view>
 
   <!-- 退出按钮 -->
   <button bindtap="exitParentMode"
-    style="width: 90%; margin: 20rpx auto; display: block; padding: 20rpx; background: #f53f3f; color: #fff; border: none; border-radius: 8rpx;">
+    style="width: 90%; margin: 20rpx auto; display: block; padding: 20rpx; background: rgba(245, 63, 63, 0.9); color: #fff; border: none; border-radius: 8rpx;">
     退出家长模式
   </button>
 </view>
 
 <!-- 家长验证区域 -->
 <view wx:else style="padding: 50rpx 20rpx;">
-  <text style="font-size: 36rpx; color: #333; display: block; text-align: center; margin-bottom: 50rpx;">请输入家长密码查看数据</text>
-  <input type="password" placeholder="请输入家长密码" bindinput="onPwdInput" value="{{inputPwd}}" 
-    style="width: 90%; margin: 0 auto; display: block; padding: 20rpx; border: 1px solid #eee; border-radius: 8rpx; font-size: 32rpx;" />
-  <button bindtap="verifyParentPwd"
-    style="width: 90%; margin: 30rpx auto; display: block; padding: 20rpx; background: #07c160; color: #fff; border: none; border-radius: 8rpx; font-size: 32rpx;">
-    家长验证查看数据
-  </button>
-  <!-- 授权按钮 -->
-  <view wx:if="{{showAuthBtn}}" style="margin-top:20rpx;">
-    <button bindtap="handleUserAuth" type="primary" size="mini"
-      style="width: 90%; margin: 0 auto; display: block; padding: 15rpx; font-size: 28rpx;">
-      点击授权用户信息
+  <view style="background: rgba(255, 255, 255, 0.9); padding: 40rpx; border-radius: 10rpx;">
+    <text style="font-size: 36rpx; color: #333; display: block; text-align: center; margin-bottom: 50rpx;">请输入家长密码查看数据</text>
+    <input type="password" placeholder="请输入家长密码" bindinput="onPwdInput" value="{{inputPwd}}" 
+      style="width: 90%; margin: 0 auto; display: block; padding: 20rpx; border: 1px solid #eee; border-radius: 8rpx; font-size: 32rpx; background: #fff;" />
+    <button bindtap="verifyParentPwd"
+      style="width: 90%; margin: 30rpx auto; display: block; padding: 20rpx; background: #07c160; color: #fff; border: none; border-radius: 8rpx; font-size: 32rpx;">
+      家长验证查看数据
     </button>
+    <!-- 授权按钮 -->
+    <view wx:if="{{showAuthBtn}}" style="margin-top:20rpx;">
+      <button bindtap="handleUserAuth" 
+        style="width: 90%; margin: 0 auto; display: block; padding: 15rpx; font-size: 28rpx; background: rgba(255, 255, 255, 0.95); color: #333; border: 1px solid #ddd; border-radius: 8rpx;">
+        点击授权用户信息
+      </button>
+    </view>
   </view>
 </view>

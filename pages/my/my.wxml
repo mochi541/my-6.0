@@ -1,5 +1,5 @@
 <!-- pages/my/my.wxml -->
-<view class="page-container">
+<view class="page-container" style="{{fontSizeStyle}}">
   <!-- 1. 用户信息卡片 -->
   <view class="card user-card">
     <view class="user-info" bindtap="getUserProfile">

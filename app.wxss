@@ -4,7 +4,8 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #303133;
   box-sizing: border-box;
-  padding-bottom: 120rpx; /* 防止 tabBar 遮挡底部 */
+  padding-bottom: 120rpx;
+  font-size: 28rpx;
 }
 
 /* 统一卡片 */

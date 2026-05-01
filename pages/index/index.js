@@ -10,7 +10,7 @@ Page({
     time: '00:00:00',
 
     cameraAuth: false,
-    poseTip: "✅ 坐姿良好",
+    poseTip: "",
     warning: false,
 
     lockStudy: false,
@@ -24,10 +24,22 @@ Page({
         this.setData({ cameraAuth: true })
       }
     })
+    this.applyFontSize()
+  },
+
+  onShow() {
+    this.applyFontSize()
   },
 
   onUnload() {
     clearInterval(this.data.timer)
+  },
+
+  applyFontSize() {
+    const fontSize = wx.getStorageSync('fontSize') || 1
+    wx.setPageStyle({
+      style: `font-size: ${Math.round(28 * fontSize)}rpx;`
+    })
   },
 
   startStudy() {
@@ -46,7 +58,7 @@ Page({
     wx.vibrateLong()
     setTimeout(() => {
       this.setData({
-        poseTip: "✅ 坐姿良好",
+        poseTip: "",
         warning: false
       })
     }, 3000)
@@ -56,16 +68,16 @@ Page({
       this.setData({ seconds: s })
       this.formatTime(s)
 
-      // 每10分钟提醒+震动
-      if (s % 600 === 0) {
+      // 每20分钟提醒+震动（修改：600改为1200）
+      if (s % 1200 === 0) {
         this.setData({
-          poseTip: "⚠️ 请注意端正坐姿",
+          poseTip: "️休息一下，看远处20秒",
           warning: true
         })
         wx.vibrateLong()
         setTimeout(() => {
           this.setData({
-            poseTip: "✅ 坐姿良好",
+            poseTip: "",
             warning: false
           })
         }, 3000)
@@ -74,7 +86,7 @@ Page({
       // 20分钟护眼弹窗
       if (s % 1200 === 0) {
         wx.showModal({
-          title: '👀 护眼提醒',
+          title: ' 护眼提醒',
           content: '休息一下，看远处20秒',
           showCancel: false
         })
@@ -95,7 +107,7 @@ Page({
     this.setData({
       isStudying: false,
       timer: null,
-      poseTip: "✅ 坐姿良好",
+      poseTip: "",
       warning: false
     })
 

@@ -1,28 +1,23 @@
-// my/pages/stats/stats.js
 const app = getApp();
 const db = wx.cloud.database();
-// 关键：直接引用 wxcharts-min.js（无需重命名）
 const wxCharts = require('../../utils/wxcharts-min.js');
 
 Page({
   data: {
     inputPwd: "",
     isParentVerified: false,
-    parentPwd: '', // 初始为空，在onShow中读取
+    parentPwd: '',
     timeRange: 7,
     avgDuration: 0, 
     restCompletionRate: 0,
     userName: '用户',
     showAuthBtn: false,
-    // 缓存图表实例（原生wx-charts，无循环引用）
     lineChartInstance: null,
     barChartInstance: null,
-    // 真实数据存储
     studyDataList: []
   },
 
   onLoad(options) {
-    // 云开发初始化
     if (!wx.cloud) {
       wx.showToast({ title: '请使用2.2.3及以上基础库', icon: 'none' });
       return;
@@ -32,34 +27,38 @@ Page({
       traceUser: true,
     });
 
-    // 检查用户信息
     if (app.globalData && app.globalData.user_info) {
       this.setData({ userName: app.globalData.user_info.nickName || '用户' });
     } else {
       this.setData({ showAuthBtn: true });
     }
 
-    // 关键：页面加载时开启分享功能（必须）
     wx.showShareMenu({
       withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline'] // 支持分享给好友+朋友圈
+      menus: ['shareAppMessage', 'shareTimeline']
     });
+    
+    this.applyFontSize()
   },
 
   onShow() {
-    // 每次显示页面时重新读取最新密码
     const latestPwd = wx.getStorageSync('parentPwd') || '';
     this.setData({ parentPwd: latestPwd });
+    this.applyFontSize()
   },
 
-  // 密码输入
+  applyFontSize() {
+    const fontSize = wx.getStorageSync('fontSize') || 1
+    wx.setPageStyle({
+      style: `font-size: ${Math.round(28 * fontSize)}rpx;`
+    })
+  },
+
   onPwdInput(e) {
     this.setData({ inputPwd: e.detail.value });
   },
 
-  // 家长验证（核心：验证后直接渲染图表）
   verifyParentPwd() {
-    // 检查是否已设置家长密码
     if (!this.data.parentPwd) {
       wx.showModal({
         title: '提示',
@@ -68,7 +67,7 @@ Page({
         confirmText: '去设置',
         success: (res) => {
           if (res.confirm) {
-            wx.navigateBack(); // 返回上一页
+            wx.navigateBack();
           }
         }
       });
@@ -80,7 +79,6 @@ Page({
       return;
     }
 
-    // 去除空格后对比
     const inputPwd = this.data.inputPwd.trim();
     const savedPwd = this.data.parentPwd.trim();
 
@@ -90,12 +88,10 @@ Page({
     }
 
     this.setData({ isParentVerified: true }, () => {
-      // 加载真实数据并渲染图表
       this.loadRealData();
     });
   },
 
-  // 退出家长模式
   exitParentMode() {
     this.setData({
       isParentVerified: false,
@@ -104,7 +100,6 @@ Page({
     wx.showToast({ title: '已退出家长模式', icon: 'success' });
   },
 
-  // 切换时间范围
   changeTimeRange(e) {
     const range = e.currentTarget.dataset.range;
     this.setData({ timeRange: range }, () => {
@@ -112,12 +107,10 @@ Page({
     });
   },
 
-  // 加载真实数据+渲染图表
   async loadRealData() {
     wx.showLoading({ title: '加载中...' });
     
     try {
-      // 获取openid
       const openid = app.globalData.openid || wx.getStorageSync('openid');
       
       if (!openid) {
@@ -126,7 +119,6 @@ Page({
         return;
       }
 
-      // 计算起始日期
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - this.data.timeRange + 1);
@@ -134,7 +126,6 @@ Page({
       const startDateStr = this.formatDate(startDate);
       const endDateStr = this.formatDate(endDate);
 
-      // 从云数据库查询学习记录
       const res = await db.collection('study_records')
         .where({
           openid: openid,
@@ -148,12 +139,10 @@ Page({
       if (records.length === 0) {
         wx.hideLoading();
         wx.showToast({ title: '暂无学习数据', icon: 'none' });
-        // 显示空状态图表
         this.renderEmptyCharts();
         return;
       }
 
-      // 按日期分组统计
       const dateMap = {};
       records.forEach(record => {
         const date = record.date;
@@ -169,7 +158,6 @@ Page({
         dateMap[date].count += 1;
       });
 
-      // 生成完整的日期序列（包括没有学习的日期）
       const dates = [];
       const durations = [];
       const completionRates = [];
@@ -184,7 +172,6 @@ Page({
         
         if (dateMap[dateStr]) {
           durations.push(dateMap[dateStr].totalDuration);
-          // 计算完成率：假设每天应该休息次数 = 学习时长/20分钟
           const expectedRest = Math.max(1, Math.floor(dateMap[dateStr].totalDuration / 20));
           const actualRest = dateMap[dateStr].remindCount;
           const rate = Math.min(100, Math.round((actualRest / expectedRest) * 100));
@@ -195,7 +182,6 @@ Page({
         }
       }
 
-      // 计算平均值
       const avgDuration = Math.round(durations.reduce((a, b) => a + b, 0) / this.data.timeRange);
       const restCompletionRate = Math.round(completionRates.reduce((a, b) => a + b, 0) / this.data.timeRange);
 
@@ -207,7 +193,6 @@ Page({
 
       wx.hideLoading();
 
-      // 渲染图表
       setTimeout(() => {
         wx.getSystemInfo({
           success: (res) => {
@@ -225,7 +210,6 @@ Page({
     }
   },
 
-  // 渲染空状态图表
   renderEmptyCharts() {
     wx.getSystemInfo({
       success: (res) => {
@@ -248,7 +232,6 @@ Page({
     });
   },
 
-  // 渲染折线图
   renderLineChart(width, categories, data) {
     const systemInfo = wx.getSystemInfoSync();
     const chartHeight = systemInfo.windowWidth / 750 * 400;
@@ -298,7 +281,6 @@ Page({
     }
   },
 
-  // 渲染柱状图
   renderBarChart(width, categories, data) {
     const systemInfo = wx.getSystemInfoSync();
     const chartHeight = systemInfo.windowWidth / 750 * 400;
@@ -352,7 +334,6 @@ Page({
     }
   },
 
-  // 导出数据
   exportData() {
     const { avgDuration, restCompletionRate, timeRange, userName, studyDataList } = this.data;
     const exportData = {
@@ -380,7 +361,6 @@ Page({
     });
   },
 
-  // 修复：分享数据按钮逻辑（提示用户用右上角分享，兼容模拟器）
   shareData() {
     wx.showModal({
       title: '分享提示',
@@ -395,7 +375,6 @@ Page({
     });
   },
 
-  // 用户授权
   handleUserAuth() {
     wx.getUserProfile({
       desc: '用于展示用户专属的用眼统计数据',
@@ -414,7 +393,6 @@ Page({
     });
   },
 
-  // 格式化日期为 YYYY-MM-DD
   formatDate(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -422,7 +400,6 @@ Page({
     return `${year}-${month}-${day}`;
   },
 
-  // 页面生命周期：分享给好友
   onShareAppMessage() {
     const { avgDuration, restCompletionRate, timeRange, userName } = this.data;
     return {
@@ -431,7 +408,6 @@ Page({
     };
   },
 
-  // 页面生命周期：分享到朋友圈
   onShareTimeline() {
     const { avgDuration, restCompletionRate, timeRange, userName } = this.data;
     return {

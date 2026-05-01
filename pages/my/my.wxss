@@ -124,3 +124,18 @@ slider {
   background: #409EFF;
   color: #fff;
 }
+
+/* 让所有文本元素继承父级字体大小 */
+.set-row text,
+.title,
+.nickname,
+.tip,
+.desc,
+.picker-text,
+.modal-title,
+.modal-desc,
+.pwd-input,
+.btn-cancel,
+.btn-confirm {
+  font-size: inherit;
+}

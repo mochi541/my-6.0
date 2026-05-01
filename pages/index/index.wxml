@@ -1,4 +1,8 @@
 <view class="container">
+  <!-- 背景图片 -->
+  <image class="bg-image" src="/image/beijin.png" mode="aspectFill"></image>
+  
+  <!-- 摄像头 -->
   <camera 
     wx:if="{{cameraAuth}}" 
     class="camera"
@@ -6,34 +10,40 @@
     flash="off"
   />
 
-  <view class="pose-tip {{warning ? 'warning' : ''}}">{{poseTip}}</view>
-
-  <view class="card time-box">
-    <text class="time-text">{{time}}</text>
-    <text class="tip">当前学习时长</text>
+  <!-- 坐姿提示（摄像头下方） -->
+  <view wx:if="{{poseTip}}" class="pose-tip {{warning ? 'warning' : ''}}">
+    <text>{{poseTip}}</text>
   </view>
 
-  <view class="btn-group">
-    <button wx:if="{{!isStudying && !lockStudy}}"
-      class="btn btn-primary"
-      hover-class="btn-hover"
-      bindtap="startStudy">
-      开始学习
-    </button>
+  <!-- 内容区域 -->
+  <view class="content-wrapper">
+    <view class="card time-box">
+      <text class="time-text">{{time}}</text>
+      <text class="tip">当前学习时长</text>
+    </view>
 
-    <button wx:elif="{{isStudying}}"
-      class="btn btn-warn"
-      hover-class="btn-hover"
-      bindtap="stopStudy">
-      停止学习
-    </button>
+    <view class="btn-group">
+      <button wx:if="{{!isStudying && !lockStudy}}"
+        class="btn btn-primary"
+        hover-class="btn-hover"
+        bindtap="startStudy">
+        开始学习
+      </button>
 
-    <button wx:else disabled class="btn btn-disabled">
-      {{lockText}}
-    </button>
-  </view>
+      <button wx:elif="{{isStudying}}"
+        class="btn btn-warn"
+        hover-class="btn-hover"
+        bindtap="stopStudy">
+        停止学习
+      </button>
 
-  <view class="card">
-    <text class="desc">今日护眼提醒：{{remindCount}} 次</text>
+      <button wx:else disabled class="btn btn-disabled">
+        {{lockText}}
+      </button>
+    </view>
+
+    <view class="card">
+      <text class="desc">今日护眼提醒：{{remindCount}} 次</text>
+    </view>
   </view>
 </view>

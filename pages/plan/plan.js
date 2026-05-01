@@ -10,33 +10,27 @@ Page({
   timer: null,
 
   onLoad() {
-    // 单独实例，不全局乱定义
     this.innerAudioContext = wx.createInnerAudioContext()
     let audio = this.innerAudioContext
 
-    // 确认路径：audio文件夹下 eye-protect1.mp3
     audio.src = "/audio/eye-protect1.mp3"
 
-    // 总时长
     audio.onCanplay(() => {
       this.setData({
         duration: this.formatTime(audio.duration)
       })
     })
 
-    // 播放
     audio.onPlay(() => {
       this.setData({ isPlaying: true })
       this.startProgress()
     })
 
-    // 暂停
     audio.onPause(() => {
       this.setData({ isPlaying: false })
       this.stopProgress()
     })
 
-    // 播放结束
     audio.onEnded(() => {
       this.setData({
         isPlaying: false,
@@ -47,14 +41,25 @@ Page({
       audio.seek(0)
     })
 
-    // 打印错误，方便排查
     audio.onError((res) => {
       console.log("音频错误：", res)
       wx.showToast({ title: "音频加载失败", icon: "none" })
     })
+    
+    this.applyFontSize()
   },
 
-  // 播放暂停按钮
+  onShow() {
+    this.applyFontSize()
+  },
+
+  applyFontSize() {
+    const fontSize = wx.getStorageSync('fontSize') || 1
+    wx.setPageStyle({
+      style: `font-size: ${Math.round(28 * fontSize)}rpx;`
+    })
+  },
+
   togglePlay() {
     let audio = this.innerAudioContext
     if (!audio) return
@@ -65,7 +70,6 @@ Page({
     }
   },
 
-  // 开启进度更新
   startProgress() {
     this.stopProgress()
     this.timer = setInterval(() => {
@@ -80,7 +84,6 @@ Page({
     }, 1000)
   },
 
-  // 关闭进度
   stopProgress() {
     if (this.timer) {
       clearInterval(this.timer)
@@ -88,7 +91,6 @@ Page({
     }
   },
 
-  // 点击进度条
   changeProgressByClick(e) {
     let dur = this.innerAudioContext.duration
     if (!dur) return
@@ -102,7 +104,6 @@ Page({
     })
   },
 
-  // 拖动
   dragProgress(e) {
     let dur = this.innerAudioContext.duration
     if (!dur) return
@@ -117,7 +118,6 @@ Page({
     })
   },
 
-  // 时间格式化
   formatTime(s) {
     if (!s) return "00:00"
     let m = Math.floor(s / 60).toString().padStart(2, "0")
