@@ -14,14 +14,18 @@
     "useCompilerPlugins": false,
     "minifyWXML": true,
     "minifyWXSS": true,
-    "ignoreUploadUnusedFiles": true
+    "ignoreUploadUnusedFiles": true,
+    "condition": true
   },
   "compileType": "miniprogram",
-  "simulatorPluginLibVersion": {},
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "3.6.5-41"
+  },
   "packOptions": {
     "ignore": [],
     "include": []
   },
   "appid": "wx78927c68adf7ec80",
-  "editorSetting": {}
+  "editorSetting": {},
+  "projectArchitecture": "multiPlatform"
 }
