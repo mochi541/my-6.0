@@ -1,5 +1,12 @@
 const app = getApp();
-const db = wx.cloud.database();
+let db = null;
+
+try {
+  db = wx.cloud.database();
+} catch (e) {
+  console.log('云开发不可用，将使用本地存储');
+}
+
 const wxCharts = require('../../utils/wxcharts-min.js');
 
 Page({
@@ -18,19 +25,27 @@ Page({
   },
 
   onLoad(options) {
-    if (!wx.cloud) {
-      wx.showToast({ title: '请使用2.2.3及以上基础库', icon: 'none' });
-      return;
-    }
-    wx.cloud.init({
-      env: app.globalData.cloudEnvId || 'cloud1',
-      traceUser: true,
-    });
-
-    if (app.globalData && app.globalData.user_info) {
-      this.setData({ userName: app.globalData.user_info.nickName || '用户' });
+    const systemInfo = wx.getSystemInfoSync();
+    const isApkEnv = systemInfo.platform === 'android' || systemInfo.platform === 'ios';
+    
+    if (isApkEnv) {
+      console.log('APK环境，使用本地存储模式');
+      this.setData({ userName: '本地用户' });
     } else {
-      this.setData({ showAuthBtn: true });
+      if (!wx.cloud) {
+        wx.showToast({ title: '请使用2.2.3及以上基础库', icon: 'none' });
+        return;
+      }
+      wx.cloud.init({
+        env: app.globalData.cloudEnvId || 'cloud1',
+        traceUser: true,
+      });
+
+      if (app.globalData && app.globalData.user_info) {
+        this.setData({ userName: app.globalData.user_info.nickName || '用户' });
+      } else {
+        this.setData({ showAuthBtn: true });
+      }
     }
 
     wx.showShareMenu({
@@ -38,20 +53,21 @@ Page({
       menus: ['shareAppMessage', 'shareTimeline']
     });
     
-    this.applyFontSize()
+    this.applyFontSize();
   },
 
   onShow() {
     const latestPwd = wx.getStorageSync('parentPwd') || '';
     this.setData({ parentPwd: latestPwd });
-    this.applyFontSize()
+    this.applyFontSize();
   },
 
   applyFontSize() {
-    const fontSize = wx.getStorageSync('fontSize') || 1
-    wx.setPageStyle({
-      style: `font-size: ${Math.round(28 * fontSize)}rpx;`
-    })
+    const fontSize = wx.getStorageSync('fontSize') || 1;
+    const page = getCurrentPages().pop();
+    if (page && page.$vm) {
+      page.$vm.$el.style.fontSize = Math.round(28 * fontSize) + 'rpx';
+    }
   },
 
   onPwdInput(e) {
@@ -111,30 +127,47 @@ Page({
     wx.showLoading({ title: '加载中...' });
     
     try {
-      const openid = app.globalData.openid || wx.getStorageSync('openid');
+      const systemInfo = wx.getSystemInfoSync();
+      const isApkEnv = systemInfo.platform === 'android' || systemInfo.platform === 'ios';
       
-      if (!openid) {
-        wx.hideLoading();
-        wx.showToast({ title: '未获取到用户信息', icon: 'none' });
-        return;
+      let records = [];
+      
+      if (isApkEnv || !db) {
+        console.log('使用本地存储数据');
+        const localRecords = wx.getStorageSync('study_records') || [];
+        const openid = app.globalData.openid || wx.getStorageSync('openid');
+        
+        if (openid) {
+          records = localRecords.filter(r => r.openid === openid);
+        } else {
+          records = localRecords;
+        }
+      } else {
+        const openid = app.globalData.openid || wx.getStorageSync('openid');
+        
+        if (!openid) {
+          wx.hideLoading();
+          wx.showToast({ title: '未获取到用户信息', icon: 'none' });
+          return;
+        }
+
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - this.data.timeRange + 1);
+        
+        const startDateStr = this.formatDate(startDate);
+        const endDateStr = this.formatDate(endDate);
+
+        const res = await db.collection('study_records')
+          .where({
+            openid: openid,
+            date: db.command.gte(startDateStr).and(db.command.lte(endDateStr))
+          })
+          .orderBy('createTime', 'asc')
+          .get();
+
+        records = res.data || [];
       }
-
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - this.data.timeRange + 1);
-      
-      const startDateStr = this.formatDate(startDate);
-      const endDateStr = this.formatDate(endDate);
-
-      const res = await db.collection('study_records')
-        .where({
-          openid: openid,
-          date: db.command.gte(startDateStr).and(db.command.lte(endDateStr))
-        })
-        .orderBy('createTime', 'asc')
-        .get();
-
-      const records = res.data || [];
       
       if (records.length === 0) {
         wx.hideLoading();
@@ -376,6 +409,18 @@ Page({
   },
 
   handleUserAuth() {
+    const systemInfo = wx.getSystemInfoSync();
+    const isApkEnv = systemInfo.platform === 'android' || systemInfo.platform === 'ios';
+    
+    if (isApkEnv) {
+      this.setData({ 
+        userName: '本地用户',
+        showAuthBtn: false 
+      });
+      wx.showToast({ title: 'APK环境使用本地账户', icon: 'success' });
+      return;
+    }
+    
     wx.getUserProfile({
       desc: '用于展示用户专属的用眼统计数据',
       success: (res) => {

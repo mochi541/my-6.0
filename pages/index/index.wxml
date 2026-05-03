@@ -1,8 +1,6 @@
-<view class="container">
-  <!-- 背景图片 -->
+<view class="container" style="font-size: {{Math.round((fontSize || 1) * 28)}}rpx;">
   <image class="bg-image" src="/image/beijin.png" mode="aspectFill"></image>
   
-  <!-- 摄像头 -->
   <camera 
     wx:if="{{cameraAuth}}" 
     class="camera"
@@ -10,12 +8,10 @@
     flash="off"
   />
 
-  <!-- 坐姿提示（摄像头下方） -->
   <view wx:if="{{poseTip}}" class="pose-tip {{warning ? 'warning' : ''}}">
     <text>{{poseTip}}</text>
   </view>
 
-  <!-- 内容区域 -->
   <view class="content-wrapper">
     <view class="card time-box">
       <text class="time-text">{{time}}</text>
@@ -43,7 +39,7 @@
     </view>
 
     <view class="card">
-      <text class="desc">今日护眼提醒：{{remindCount}} 次</text>
+      <text class="desc">今日护眼提醒:{{remindCount}} 次</text>
     </view>
   </view>
 </view>

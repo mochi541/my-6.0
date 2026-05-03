@@ -11,7 +11,8 @@
     "navigationBarBackgroundColor": "#409EFF",
     "navigationBarTitleText": "青少年近视防控助手",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F7FA"
+    "backgroundColor": "#F5F7FA",
+    "navigationStyle": "default"
   },
   "tabBar": {
     "color": "#909399",
@@ -50,5 +51,6 @@
   },
   "requiredBackgroundModes": ["camera"],
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
 }

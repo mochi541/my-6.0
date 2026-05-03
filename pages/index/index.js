@@ -1,5 +1,5 @@
 const app = getApp()
-const db = wx.cloud.database()
+const db = wx.cloud ? wx.cloud.database() : null
 
 Page({
   data: {
@@ -14,32 +14,44 @@ Page({
     warning: false,
 
     lockStudy: false,
-    lockText: ''
+    lockText: '',
+    
+    fontSize: 1
   },
 
   onLoad() {
-    wx.authorize({
-      scope: 'scope.camera',
-      success: () => {
-        this.setData({ cameraAuth: true })
-      }
-    })
-    this.applyFontSize()
+    this.checkCameraAuth()
+    const fontSize = parseFloat(wx.getStorageSync('fontSize') || 1)
+    this.setData({ fontSize: fontSize })
   },
 
   onShow() {
-    this.applyFontSize()
+    const fontSize = parseFloat(wx.getStorageSync('fontSize') || 1)
+    this.setData({ fontSize: fontSize })
   },
 
   onUnload() {
-    clearInterval(this.data.timer)
+    if (this.data.timer) {
+      clearInterval(this.data.timer)
+    }
   },
 
-  applyFontSize() {
-    const fontSize = wx.getStorageSync('fontSize') || 1
-    wx.setPageStyle({
-      style: `font-size: ${Math.round(28 * fontSize)}rpx;`
-    })
+  checkCameraAuth() {
+    if (typeof wx.authorize === 'function') {
+      wx.authorize({
+        scope: 'scope.camera',
+        success: () => {
+          this.setData({ cameraAuth: true })
+        },
+        fail: () => {
+          console.log('摄像头授权失败,可能不支持此功能')
+          this.setData({ cameraAuth: false })
+        }
+      })
+    } else {
+      console.log('当前环境不支持摄像头授权')
+      this.setData({ cameraAuth: false })
+    }
   },
 
   startStudy() {
@@ -49,13 +61,13 @@ Page({
       seconds: 0
     })
 
-    // 开局第一秒：文字变红 + 强制震动
     this.setData({
       poseTip: "⚠️ 请注意端正坐姿",
       warning: true
     })
-    // 强制震动
-    wx.vibrateLong()
+    
+    this.safeVibrate()
+    
     setTimeout(() => {
       this.setData({
         poseTip: "",
@@ -68,13 +80,12 @@ Page({
       this.setData({ seconds: s })
       this.formatTime(s)
 
-      // 每20分钟提醒+震动（修改：600改为1200）
       if (s % 1200 === 0) {
         this.setData({
-          poseTip: "️休息一下，看远处20秒",
+          poseTip: "️休息一下,看远处20秒",
           warning: true
         })
-        wx.vibrateLong()
+        this.safeVibrate()
         setTimeout(() => {
           this.setData({
             poseTip: "",
@@ -83,17 +94,15 @@ Page({
         }, 3000)
       }
 
-      // 20分钟护眼弹窗
       if (s % 1200 === 0) {
         wx.showModal({
           title: ' 护眼提醒',
-          content: '休息一下，看远处20秒',
+          content: '休息一下,看远处20秒',
           showCancel: false
         })
         this.setData({ remindCount: this.data.remindCount + 1 })
       }
 
-      // 45分钟强制休息
       if (s >= 2700) {
         this.forceRest()
       }
@@ -103,7 +112,9 @@ Page({
   },
 
   stopStudy() {
-    clearInterval(this.data.timer)
+    if (this.data.timer) {
+      clearInterval(this.data.timer)
+    }
     this.setData({
       isStudying: false,
       timer: null,
@@ -114,27 +125,48 @@ Page({
     const sec = this.data.seconds
     if (sec < 60) return
 
-    // 获取openid
     const openid = app.globalData.openid || wx.getStorageSync('openid')
     
-    // 保存到云数据库
-    db.collection('study_records').add({
-      data: {
+    if (db) {
+      db.collection('study_records').add({
+        data: {
+          openid: openid,
+          duration: Math.floor(sec / 60),
+          remindCount: this.data.remindCount,
+          date: this.getTodayDate(),
+          createTime: new Date(),
+          userInfo: app.globalData.user_info || {}
+        },
+        success: (res) => {
+          console.log('学习记录保存成功', res)
+        },
+        fail: (err) => {
+          console.error('学习记录保存失败', err)
+        }
+      })
+    } else {
+      const records = wx.getStorageSync('study_records') || []
+      records.push({
         openid: openid,
-        duration: Math.floor(sec / 60), // 学习时长（分钟）
-        remindCount: this.data.remindCount, // 提醒次数
-        date: this.getTodayDate(), // 日期字符串，方便查询
-        createTime: new Date(),
-        userInfo: app.globalData.user_info || {}
-      },
-      success: (res) => {
-        console.log('学习记录保存成功', res)
-      },
-      fail: (err) => {
-        console.error('学习记录保存失败', err)
-        wx.showToast({ title: '记录保存失败', icon: 'none' })
-      }
-    })
+        duration: Math.floor(sec / 60),
+        remindCount: this.data.remindCount,
+        date: this.getTodayDate(),
+        createTime: new Date().toISOString()
+      })
+      wx.setStorageSync('study_records', records)
+      console.log('学习记录已保存到本地')
+    }
+  },
+
+  safeVibrate() {
+    if (typeof wx.vibrateLong === 'function') {
+      wx.vibrateLong({
+        success: () => {},
+        fail: () => {
+          console.log('震动功能不可用')
+        }
+      })
+    }
   },
 
   forceRest() {
@@ -160,7 +192,6 @@ Page({
     })
   },
 
-  // 获取今天日期字符串 YYYY-MM-DD
   getTodayDate() {
     const now = new Date()
     const year = now.getFullYear()

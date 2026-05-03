@@ -4,8 +4,9 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #303133;
   box-sizing: border-box;
-  padding-bottom: 120rpx;
   font-size: 28rpx;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* 统一卡片 */
@@ -15,6 +16,8 @@ page {
   padding: 30rpx;
   margin: 20rpx;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: calc(100% - 40rpx);
 }
 
 /* 主按钮 */
@@ -25,6 +28,8 @@ page {
   text-align: center;
   font-size: 32rpx;
   margin: 20rpx;
+  width: calc(100% - 40rpx);
+  box-sizing: border-box;
 }
 .btn-primary {
   background-color: #409EFF;
@@ -69,6 +74,8 @@ page {
   align-items: center;
   padding: 24rpx 0;
   font-size: 30rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 弹窗遮罩 */

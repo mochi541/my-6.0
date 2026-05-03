@@ -1,10 +1,7 @@
 Component({
   options: {
-    multipleSlots: true // 在组件定义时的选项中启用多slot支持
+    multipleSlots: true
   },
-  /**
-   * 组件的属性列表
-   */
   properties: {
     extClass: {
       type: String,
@@ -35,53 +32,59 @@ Component({
       value: false,
     },
     animated: {
-      // 显示隐藏的时候opacity动画效果
       type: Boolean,
       value: true
     },
     show: {
-      // 显示隐藏导航，隐藏的时候navigation-bar的高度占位还在
       type: Boolean,
       value: true,
       observer: '_showChange'
     },
-    // back为true的时候，返回的页面深度
     delta: {
       type: Number,
       value: 1
     },
   },
-  /**
-   * 组件的初始数据
-   */
   data: {
     displayStyle: ''
   },
   lifetimes: {
     attached() {
-      const rect = wx.getMenuButtonBoundingClientRect()
-      const platform = (wx.getDeviceInfo() || wx.getSystemInfoSync()).platform
-      const isAndroid = platform === 'android'
-      const isDevtools = platform === 'devtools'
-      const { windowWidth, safeArea: { top = 0, bottom = 0 } = {} } = wx.getWindowInfo() || wx.getSystemInfoSync()
-      this.setData({
-        ios: !isAndroid,
-        innerPaddingRight: `padding-right: ${windowWidth - rect.left}px`,
-        leftWidth: `width: ${windowWidth - rect.left}px`,
-        safeAreaTop: isDevtools || isAndroid ? `height: calc(var(--height) + ${top}px); padding-top: ${top}px` : ``
-      })
+      // 兼容多端模式
+      try {
+        const systemInfo = wx.getSystemInfoSync()
+        const platform = systemInfo.platform
+        const isAndroid = platform === 'android'
+        const isDevtools = platform === 'devtools'
+        
+        // 尝试获取菜单按钮位置(多端模式可能不支持)
+        let rect = { left: 0 }
+        try {
+          rect = wx.getMenuButtonBoundingClientRect()
+        } catch (e) {
+          console.log('无法获取菜单按钮位置,使用默认值')
+        }
+        
+        const { windowWidth, safeArea } = systemInfo
+        const top = safeArea ? safeArea.top : 0
+        
+        this.setData({
+          ios: !isAndroid,
+          innerPaddingRight: `padding-right: ${windowWidth - rect.left}px`,
+          leftWidth: `width: ${windowWidth - rect.left}px`,
+          safeAreaTop: isDevtools || isAndroid ? `height: calc(var(--height) + ${top}px); padding-top: ${top}px` : ``
+        })
+      } catch (e) {
+        console.log('导航栏初始化失败,使用默认设置')
+      }
     },
   },
-  /**
-   * 组件的方法列表
-   */
   methods: {
     _showChange(show) {
       const animated = this.data.animated
       let displayStyle = ''
       if (animated) {
-        displayStyle = `opacity: ${show ? '1' : '0'
-          };transition:opacity 0.5s;`
+        displayStyle = `opacity: ${show ? '1' : '0'};transition:opacity 0.5s;`
       } else {
         displayStyle = `display: ${show ? '' : 'none'}`
       }

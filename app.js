@@ -1,33 +1,37 @@
 // app.js
 App({
   globalData: {
-    openid: '', // 存储用户openid
-    cloudEnvId: 'cloud1-2gl4b6myfe79dca2', // 你的云环境ID
-    fontSize: 1, // 全局字体大小
-    postureRemind: true, // 姿势提醒开关
-    eyeRemind: true, // 护眼提醒开关
-    vibrate: true, // 震动提醒开关
-    user_info: null // 新增：存储用户信息
+    openid: '',
+    cloudEnvId: 'cloud1-2gl4b6myfe79dca2',
+    fontSize: 1,
+    postureRemind: true,
+    eyeRemind: true,
+    vibrate: true,
+    user_info: null
   },
 
   onLaunch() {
-    // 初始化云开发
-    if (!wx.cloud) {
-      wx.showToast({
-        title: '请升级微信版本以使用云开发',
-        icon: 'none',
-        duration: 2000
-      });
-      return;
+    const systemInfo = wx.getSystemInfoSync()
+    console.log('系统环境:', systemInfo.platform)
+
+    // 只在微信小程序环境下初始化云开发
+    if (systemInfo.platform !== 'devtools' && 
+        systemInfo.platform !== 'android' && 
+        systemInfo.platform !== 'ios') {
+      console.log('非小程序环境,跳过云开发初始化')
+      return
     }
+
+    if (!wx.cloud) {
+      console.log('当前环境不支持云开发')
+      return
+    }
+    
     wx.cloud.init({
       env: this.globalData.cloudEnvId,
       traceUser: true,
-    });
+    })
 
-    // ======================================
-    // 我帮你加入 AI 坐姿监测库（不影响你原有功能）
-    // ======================================
     try {
       require('./tfjs/tf-core.min.js')
       require('./tfjs/tf-converter.min.js')
@@ -35,29 +39,44 @@ App({
       require('./tfjs/mobilenet.min.js')
       console.log("✅ AI姿态库加载成功")
     } catch (e) {
-      console.log("AI库未加载，不影响主功能")
+      console.log("AI库未加载,不影响主功能")
     }
 
-    // 获取用户openid
-    this.getWxOpenid();
+    // 尝试获取openid(如果云开发可用)
+    this.getWxOpenid()
   },
 
   getWxOpenid() {
+    // 检查云开发是否可用
+    if (!wx.cloud) {
+      console.log('云开发不可用,使用本地存储')
+      const localOpenid = wx.getStorageSync('openid')
+      if (localOpenid) {
+        this.globalData.openid = localOpenid
+      } else {
+        // 生成一个临时ID
+        const tempId = 'temp_' + Date.now()
+        this.globalData.openid = tempId
+        wx.setStorageSync('openid', tempId)
+      }
+      return
+    }
+
     wx.cloud.callFunction({
       name: 'login',
       success: (res) => {
-        this.globalData.openid = res.result.openid;
-        console.log('✅ openid已获取：', res.result.openid);
-        wx.setStorageSync('openid', res.result.openid);
+        this.globalData.openid = res.result.openid
+        console.log('✅ openid已获取:', res.result.openid)
+        wx.setStorageSync('openid', res.result.openid)
       },
       fail: (err) => {
-        console.error('❌ 获取openid失败：', err);
-        wx.showToast({
-          title: '获取用户信息失败',
-          icon: 'none',
-          duration: 2000
-        });
+        console.error('❌ 获取openid失败:', err)
+        // 使用本地临时ID
+        const tempId = 'temp_' + Date.now()
+        this.globalData.openid = tempId
+        wx.setStorageSync('openid', tempId)
+        console.log('使用临时ID:', tempId)
       }
-    });
+    })
   }
-});
+})

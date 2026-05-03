@@ -1,6 +1,6 @@
 {
   "miniVersion": "v2",
-  "name": "%name%",
+  "name": "青少年智控明眸系统",
   "version": "0.0.1",
   "versionCode": 100,
   "i18nFilePath": "i18n",

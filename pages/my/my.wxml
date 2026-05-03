@@ -1,5 +1,5 @@
 <!-- pages/my/my.wxml -->
-<view class="page-container" style="{{fontSizeStyle}}">
+<view class="page-container" style="font-size: {{Math.round(fontSize * 28)}}rpx;">
   <!-- 1. 用户信息卡片 -->
   <view class="card user-card">
     <view class="user-info" bindtap="getUserProfile">
@@ -32,7 +32,19 @@
     <!-- 2.2 字体大小调节 -->
     <view class="set-row">
       <text>字体大小</text>
-      <slider value="{{fontSize}}" min="0.8" max="1.2" step="0.1" bindchange="changeFontSize" show-value></slider>
+      <view style="display: flex; align-items: center; flex: 1; justify-content: flex-end;">
+        <slider 
+          value="{{fontSize}}" 
+          min="0.8" 
+          max="1.2" 
+          step="0.1" 
+          bindchange="changeFontSize"
+          activeColor="#409EFF"
+          backgroundColor="#e0e0e0"
+          block-size="20"
+        />
+        <text class="slider-value">{{fontSize.toFixed(1)}}</text>
+      </view>
     </view>
 
     <!-- 2.3 最长学习时长限制 -->

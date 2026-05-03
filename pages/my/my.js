@@ -7,8 +7,7 @@ Page({
     postureRemind: true,
     eyeRemind: true,
     vibrate: true,
-    fontSize: 1,
-    fontSizeStyle: '', // 新增：存储字体样式
+    fontSize: 1.0,
     durationOptions: [
       { name: '30分钟', value: 30 },
       { name: '45分钟', value: 45 },
@@ -26,7 +25,7 @@ Page({
   },
 
   onLoad(options) {
-    const fontSize = wx.getStorageSync('fontSize') || 1;
+    const fontSize = parseFloat(wx.getStorageSync('fontSize') || 1.0);
     this.setData({
       postureRemind: app.globalData.postureRemind,
       eyeRemind: app.globalData.eyeRemind,
@@ -42,18 +41,27 @@ Page({
       teenMode: wx.getStorageSync('teenMode') || false,
       userInfo: wx.getStorageSync('userInfo') || {}
     });
-
-    this.applyFontSize();
   },
 
   onShow() {
-    const fontSize = wx.getStorageSync('fontSize') || 1;
-    this.setData({ fontSize });
+    const fontSize = parseFloat(wx.getStorageSync('fontSize') || 1.0);
+    this.setData({ fontSize: fontSize });
     app.globalData.fontSize = fontSize;
-    this.applyFontSize();
   },
 
   getUserProfile() {
+    const systemInfo = wx.getSystemInfoSync()
+    console.log('当前平台:', systemInfo.platform)
+
+    if (systemInfo.platform === 'android' || systemInfo.platform === 'ios') {
+      wx.showToast({
+        title: 'APK环境暂不支持头像获取',
+        icon: 'none',
+        duration: 2000
+      })
+      return
+    }
+
     wx.getUserProfile({
       desc: '展示用户信息',
       success: (res) => {
@@ -87,23 +95,14 @@ Page({
   },
 
   changeFontSize(e) {
-    const fontSize = e.detail.value;
-    this.setData({ fontSize });
-    app.globalData.fontSize = fontSize;
-    wx.setStorageSync('fontSize', fontSize);
+    const fontSize = parseFloat(e.detail.value).toFixed(1);
+    console.log('字体大小改变为:', fontSize);
     
-    this.applyFontSize();
-    
-    wx.showToast({ title: '字体大小已调整', icon: 'success', duration: 1000 });
-  },
-
-  applyFontSize() {
-    const fontSize = this.data.fontSize;
-    const baseFontSize = Math.round(28 * fontSize);
-    const fontSizeStyle = `font-size: ${baseFontSize}rpx;`;
-    
-    this.setData({ fontSizeStyle });
-    app.globalData.fontSizeStyle = fontSizeStyle;
+    this.setData({ fontSize: parseFloat(fontSize) }, () => {
+      app.globalData.fontSize = parseFloat(fontSize);
+      wx.setStorageSync('fontSize', parseFloat(fontSize));
+      console.log('字体大小已保存');
+    });
   },
 
   changeMaxDuration(e) {
@@ -243,8 +242,15 @@ Page({
           });
           wx.showToast({ title: '反馈提交成功', icon: 'success' });
         } catch (err) {
-          wx.showToast({ title: '反馈已收到', icon: 'success' });
-          console.log('反馈内容：', content);
+          const feedbacks = wx.getStorageSync('feedbacks') || []
+          feedbacks.push({
+            openid: app.globalData.openid || '未获取',
+            content: content,
+            createTime: new Date().toISOString(),
+            userInfo: this.data.userInfo
+          })
+          wx.setStorageSync('feedbacks', feedbacks)
+          wx.showToast({ title: '反馈已保存到本地', icon: 'success' });
         }
       }
     });
